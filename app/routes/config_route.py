@@ -1,10 +1,12 @@
 from fastapi import APIRouter
 import os
 import time
+import redis
 from app.config import API_VERSION, API_BASE_URL, API_FALLBACK_URL
 from dotenv import load_dotenv
+from app.utils.redis_util import check_redis_connection
 
-load_dotenv()
+load_dotenv() 
 
 router = APIRouter()
 
@@ -28,7 +30,14 @@ async def get_config():
         "UPTIME": round(time.time() - start_time, 2)
     }
 
+    redis_info = {
+        "REDIS_CONNECTION": check_redis_connection(),
+        "REDIS_HOST": os.getenv("REDIS_HOST", "localhost"),
+        "REDIS_PORT": os.getenv("REDIS_PORT", 6379)
+    }
+
     return {
         "external_api_info": external_api_info,
-        "interal_api_info": internal_api_info
+        "internal_api_info": internal_api_info,
+        "redis_info": redis_info
     }
