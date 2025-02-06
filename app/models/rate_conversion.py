@@ -12,3 +12,6 @@ class RateConversion(Model):
     class Meta:
         database = db
         table_name = 'rate_conversions'
+
+    def __str__(self):
+        return f"{self.source_currency.code} -> {self.target_currency.code}: {self.rate}"

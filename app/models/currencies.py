@@ -8,3 +8,6 @@ class Currency(Model):
     class Meta:
         database = db
         table_name = 'currencies'
+
+    def __str__(self):
+        return self.code
