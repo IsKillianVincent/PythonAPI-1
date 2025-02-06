@@ -1,4 +1,4 @@
-from app.database import connect_db, close_db 
+from database import connect_db, close_db 
 
 # Test de la connexion à la bd
 if __name__ == "__main__":
