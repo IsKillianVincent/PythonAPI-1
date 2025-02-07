@@ -1,20 +1,53 @@
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.security import APIKeyHeader
-from fastapi.openapi.models import APIKey
+from fastapi import FastAPI, Depends
+from fastapi.openapi.utils import get_openapi
+from fastapi.security import OAuth2PasswordBearer
 from app.routes.conversion_route import router as conversion_router
 from app.routes.config_route import router as config_router
-from app.middlewares.api_key_middleware import api_key_middleware
 from app.middlewares import register_middlewares
-from app.redis_config import redis_client 
+from app.redis_config import redis_client
 import redis
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-app = FastAPI(title="API de conversion de devises", version="1.0")
+app = FastAPI(
+    title="API de conversion de devises",
+    version="1.0",
+    description="Une API pour convertir des devises",
+    openapi_version="3.1.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json", 
+)
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+    }
+    openapi_schema["security"] = [{"BearerAuth": []}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 
 register_middlewares(app)
-
 app.include_router(conversion_router)
 app.include_router(config_router)
+
 
 @app.on_event("startup")
 async def startup_event():
