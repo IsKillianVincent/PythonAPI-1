@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer
 from app.routes.conversion_route import router as conversion_router
 from app.routes.config_route import router as config_router
 from app.middlewares import register_middlewares
-from app.redis_config import redis_client
+from app.config.redis_config import redis_client
 import redis
 from slowapi import Limiter
 from slowapi.util import get_remote_address

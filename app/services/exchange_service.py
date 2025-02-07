@@ -1,9 +1,9 @@
 import redis
 from fastapi import HTTPException
 import httpx
-from app.config import API_BASE_URL, API_FALLBACK_URL, API_VERSION
-from app.redis_config import REDIS_CACHE_EXPIRATION_TIME
-from app.redis_config import redis_client
+from app.config.api_config import API_BASE_URL, API_FALLBACK_URL, API_VERSION
+from app.config.redis_config import REDIS_CACHE_EXPIRATION_TIME
+from app.config.redis_config import redis_client
 
 async def fetch_exchange_rate(base_currency: str, target_currency: str, date: str = "latest"):
     cache_key = f"{base_currency}_{target_currency}_{date}"

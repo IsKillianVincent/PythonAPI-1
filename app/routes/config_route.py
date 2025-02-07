@@ -2,10 +2,10 @@ from fastapi import APIRouter
 import os
 import time
 import redis
-from app.config import API_VERSION, API_BASE_URL, API_FALLBACK_URL
+from app.config.api_config import API_VERSION, API_BASE_URL, API_FALLBACK_URL
 from dotenv import load_dotenv
 from app.utils.redis_util import check_redis_connection
-from app.redis_config import redis_client
+from app.config.redis_config import redis_client
 
 load_dotenv() 
 

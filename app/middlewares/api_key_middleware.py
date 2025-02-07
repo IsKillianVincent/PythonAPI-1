@@ -1,5 +1,5 @@
 from fastapi import Request, HTTPException
-from app.config import API_KEY
+from app.config.api_config import API_KEY
 
 async def api_key_middleware(request: Request, call_next):
     if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi"):
