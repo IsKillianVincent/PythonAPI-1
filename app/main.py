@@ -13,6 +13,9 @@ from app.exceptions.http_exceptions import http_exception_handler
 from app.exceptions.validation_exceptions import validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi import FastAPI, HTTPException
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+from app.services.exchange_service import fetch_all_currencies
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -58,6 +61,10 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 @app.on_event("startup")
 async def startup_event():
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(fetch_all_currencies, IntervalTrigger(hours=24))
+    scheduler.start()
+    await fetch_all_currencies()
     try:
         redis_client.ping()
     except redis.ConnectionError:

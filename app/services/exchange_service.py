@@ -5,8 +5,36 @@ from app.configs.api_config import API_BASE_URL, API_FALLBACK_URL, API_VERSION
 from app.configs.redis_config import REDIS_CACHE_EXPIRATION_TIME
 from app.configs.redis_config import redis_client
 
+async def fetch_all_currencies():
+    url = f"{API_BASE_URL}latest/v1/currencies.json"
+    print(url)
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            if response.status_code == 200:
+                data = response.json()
+                for currency, rate in data.items():
+                    cache_key = f"currency_{currency}"
+                    redis_client.setex(cache_key, REDIS_CACHE_EXPIRATION_TIME, rate)
+            else:
+                raise Exception(f"Failed to fetch currencies: {response.status_code}")
+    except Exception as e:
+        print(f"Error while fetching all currencies: {str(e)}")
+
 async def fetch_exchange_rate(base_currency: str, target_currency: str, date: str = "latest"):
-    cache_key = f"{base_currency}_{target_currency}_{date}"
+    base_cache_key = f"currency_{base_currency}"
+    target_cache_key = f"currency_{target_currency}"
+    
+    base_currency_rate = redis_client.get(base_cache_key)
+    target_currency_rate = redis_client.get(target_cache_key)
+    
+    if not base_currency_rate:
+        raise HTTPException(status_code=404, detail=f"La devise de référence {base_currency} n'existe pas.")
+    
+    if not target_currency_rate:
+        raise HTTPException(status_code=404, detail=f"La devise cible {target_currency} n'existe pas.")
+    
+    cache_key = f"exchange_{base_currency}_{target_currency}_{date}"
     cached_data = redis_client.get(cache_key)
     
     if cached_data:
@@ -31,20 +59,10 @@ async def fetch_exchange_rate(base_currency: str, target_currency: str, date: st
             redis_client.setex(cache_key, REDIS_CACHE_EXPIRATION_TIME, rate)
             return rate
     
-        data = response.json().get(base_currency.lower(), {})
-        rate = data.get(target_currency.lower())
-        if rate is None:
-            raise HTTPException(status_code=400, detail="La devise de référence n'existe pas")
-            
-        redis_client.setex(cache_key, REDIS_CACHE_EXPIRATION_TIME, rate)
-        return rate
     except httpx.RequestError as e:
-        print('1')
         raise HTTPException(status_code=500, detail=f"Erreur de requête vers l'API: {str(e)}")
     except httpx.TimeoutException:
-        print('2')
         raise HTTPException(status_code=500, detail="La requête à l'API a expiré.")
     except Exception as e:
-        print('3')
         raise HTTPException(status_code=404, detail=f"Erreur inconnue lors de la récupération des taux: {str(e)}")
 
