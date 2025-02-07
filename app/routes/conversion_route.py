@@ -3,7 +3,7 @@ from app.services.exchange_service import fetch_exchange_rate
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-router = APIRouter()
+router = APIRouter(tags=["Conversion de devises"])
 limiter = Limiter(key_func=get_remote_address)
 
 @limiter.limit("5/minute")

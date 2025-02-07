@@ -9,7 +9,7 @@ from app.redis_config import redis_client
 
 load_dotenv() 
 
-router = APIRouter()
+router = APIRouter(tags=["Congiguration - Gestion du cache"])
 
 @router.get("/config", include_in_schema=False)
 async def get_config():
