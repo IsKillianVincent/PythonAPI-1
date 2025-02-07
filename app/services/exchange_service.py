@@ -7,7 +7,6 @@ from app.config.redis_config import redis_client
 
 async def fetch_exchange_rate(base_currency: str, target_currency: str, date: str = "latest"):
     cache_key = f"{base_currency}_{target_currency}_{date}"
-
     cached_data = redis_client.get(cache_key)
     
     if cached_data:
@@ -24,13 +23,12 @@ async def fetch_exchange_rate(base_currency: str, target_currency: str, date: st
         if response.status_code != 200:
             response = await client.get(fallback_url)
         if response.status_code != 200:
-            raise HTTPException(status_code=500, detail="Échec de récupération des taux de change")
+            raise HTTPException(status_code=response.status_code, detail="La devise de référence n'existe pas")
 
         data = response.json().get(base_currency.lower(), {})
         rate = data.get(target_currency.lower())
         if rate is None:
-            raise HTTPException(status_code=400, detail="Devise non supportée")
+            raise HTTPException(status_code=400, detail="La devise de référence n'existe pas")
 
         redis_client.setex(cache_key, REDIS_CACHE_EXPIRATION_TIME, rate)
-
         return rate
