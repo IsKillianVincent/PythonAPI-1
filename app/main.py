@@ -16,6 +16,9 @@ from fastapi import FastAPI, HTTPException
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from app.services.exchange_service import fetch_all_currencies
+from fastapi import FastAPI, HTTPException
+from app.configs.redis_config import get_redis_client, check_redis_connection
+from app.exceptions.redis_exceptions import RedisConnectionError
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -65,11 +68,17 @@ async def startup_event():
     scheduler.add_job(fetch_all_currencies, IntervalTrigger(hours=24))
     scheduler.start()
     await fetch_all_currencies()
+    redis_client = get_redis_client()
     try:
-        redis_client.ping()
-    except redis.ConnectionError:
-        from app.exceptions.redis_exceptions import redis_connection_error
-        redis_connection_error()
+        connection_status = check_redis_connection(redis_client)
+        print(f"Redis connection: {connection_status}")
+    except RedisConnectionError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except RedisTimeoutError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except RedisUnknownError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+
 
 if __name__ == "__main__":
     import uvicorn

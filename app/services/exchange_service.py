@@ -2,8 +2,8 @@ import redis
 from fastapi import HTTPException
 import httpx
 from app.configs.api_config import API_BASE_URL, API_FALLBACK_URL, API_VERSION
-from app.configs.redis_config import REDIS_CACHE_EXPIRATION_TIME
-from app.configs.redis_config import redis_client
+from app.configs.redis_config import redis_client, get_redis_cache_expiration_time
+from app.exceptions.redis_exceptions import RedisConnectionError, RedisTimeoutError, RedisUnknownError
 
 async def fetch_all_currencies():
     url = f"{API_BASE_URL}latest/v1/currencies.json"
@@ -15,7 +15,7 @@ async def fetch_all_currencies():
                 data = response.json()
                 for currency, rate in data.items():
                     cache_key = f"currency_{currency}"
-                    redis_client.setex(cache_key, REDIS_CACHE_EXPIRATION_TIME, rate)
+                    redis_client.setex(cache_key, get_redis_cache_expiration_time(), rate)
             else:
                 raise Exception(f"Failed to fetch currencies: {response.status_code}")
     except Exception as e:
@@ -56,7 +56,7 @@ async def fetch_exchange_rate(base_currency: str, target_currency: str, date: st
             if rate is None:
                 raise HTTPException(status_code=422, detail="La devise cible est invalide.")
 
-            redis_client.setex(cache_key, REDIS_CACHE_EXPIRATION_TIME, rate)
+            redis_client.setex(cache_key, get_redis_cache_expiration_time(), rate)
             return rate
     
     except httpx.RequestError as e:
