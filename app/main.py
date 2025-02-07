@@ -4,10 +4,15 @@ from fastapi.security import OAuth2PasswordBearer
 from app.routes.conversion_route import router as conversion_router
 from app.routes.config_route import router as config_router
 from app.middlewares import register_middlewares
-from app.config.redis_config import redis_client
+from app.configs.redis_config import redis_client
 import redis
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from fastapi import FastAPI
+from app.exceptions.http_exceptions import http_exception_handler
+from app.exceptions.validation_exceptions import validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI, HTTPException
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -48,14 +53,16 @@ register_middlewares(app)
 app.include_router(conversion_router)
 app.include_router(config_router)
 
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 @app.on_event("startup")
 async def startup_event():
     try:
         redis_client.ping()
-        print("Connexion Redis réussie.")
     except redis.ConnectionError:
-        print("Connexion Redis a échoué.")
+        from app.exceptions.redis_exceptions import redis_connection_error
+        redis_connection_error()
 
 if __name__ == "__main__":
     import uvicorn
