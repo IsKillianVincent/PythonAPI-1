@@ -6,7 +6,7 @@ from app.redis_config import REDIS_CACHE_EXPIRATION_TIME
 from app.redis_config import redis_client
 
 async def fetch_exchange_rate(base_currency: str, target_currency: str, date: str = "latest"):
-    cache_key = f"Taux d'échange:{base_currency}_{target_currency}_{date}"
+    cache_key = f"{base_currency}_{target_currency}_{date}"
 
     cached_data = redis_client.get(cache_key)
     

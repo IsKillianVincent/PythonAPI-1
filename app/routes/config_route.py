@@ -5,6 +5,7 @@ import redis
 from app.config import API_VERSION, API_BASE_URL, API_FALLBACK_URL
 from dotenv import load_dotenv
 from app.utils.redis_util import check_redis_connection
+from app.redis_config import redis_client
 
 load_dotenv() 
 
@@ -41,3 +42,28 @@ async def get_config():
         "internal_api_info": internal_api_info,
         "redis_info": redis_info
     }
+
+@router.get("/cache/stats")
+async def get_cache_stats():
+    try:
+        stats = redis_client.info()
+        return {
+            "keys_count": stats.get("db0", {}).get("keys", 0),
+            "memory_used": stats.get("used_memory_human", "N/A"),
+            "uptime": stats.get("uptime_in_seconds", 0),
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/cache/keys")
+async def get_cache_keys():
+    try:
+        keys = redis_client.keys("*")
+        return {"keys": keys}
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.delete("/cache/{key}")
+async def delete_cache_key(key: str):
+    deleted = redis_client.delete(key)
+    return {"deleted": bool(deleted)}

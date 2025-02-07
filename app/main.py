@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import APIKeyHeader
+from fastapi.openapi.models import APIKey
 from app.routes.conversion_route import router as conversion_router
 from app.routes.config_route import router as config_router
 from app.middlewares.api_key_middleware import api_key_middleware
