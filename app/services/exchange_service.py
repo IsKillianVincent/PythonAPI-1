@@ -26,7 +26,7 @@ async def fetch_exchange_rate(base_currency: str, target_currency: str, date: st
             data = response.json().get(base_currency.lower(), {})
             rate = data.get(target_currency.lower())
             if rate is None:
-                raise HTTPException(status_code=400, detail="La devise de référence n'existe pas")
+                raise HTTPException(status_code=422, detail="La devise cible est invalide.")
 
             redis_client.setex(cache_key, REDIS_CACHE_EXPIRATION_TIME, rate)
             return rate
