@@ -68,14 +68,15 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 @app.on_event("startup")
 async def startup_event():
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(fetch_all_currencies, IntervalTrigger(hours=24))
-    scheduler.start()
-    await fetch_all_currencies()
+    
     redis_client = get_redis_client()
     try:
         connection_status = check_redis_connection(redis_client)
         print(f"Redis connection: {connection_status}")
+        scheduler = AsyncIOScheduler()
+        scheduler.add_job(fetch_all_currencies, IntervalTrigger(hours=24))
+        scheduler.start()
+        await fetch_all_currencies()
     except RedisConnectionError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except RedisTimeoutError as e:

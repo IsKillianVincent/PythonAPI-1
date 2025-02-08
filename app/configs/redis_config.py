@@ -1,11 +1,14 @@
 import redis
 from app.exceptions.redis_exceptions import RedisConnectionError, RedisTimeoutError, RedisUnknownError
 import os
+from dotenv import load_dotenv
+
+load_dotenv() 
 
 def get_redis_client():
     return redis.StrictRedis(
-        host=os.getenv("REDIS_HOST", "localhost"),
-        port=os.getenv("REDIS_PORT", 6379),
+        host=os.getenv("REDIS_HOST", "redis-cache"),
+        port=int(os.getenv("REDIS_PORT", 6379)),
         db=0,
         decode_responses=True,
         socket_timeout=5

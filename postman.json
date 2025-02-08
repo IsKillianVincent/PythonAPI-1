@@ -1,0 +1,123 @@
+{
+    "info": {
+      "_postman_id": "e2d6c48e-71b2-495d-84a6-1e7ecf039c9f",
+      "name": "API de Conversion de Devises",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Convertir la devise",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{API_KEY}}",
+              "description": "Token API"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "description": "Type de contenu pour la requête"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"amount\": 100, \"from_currency\": \"USD\", \"to_currency\": \"EUR\", \"date\": \"latest\"}"
+          },
+          "url": {
+            "raw": "http://{{BASE_URL}}/convert",
+            "protocol": "http",
+            "host": ["{{BASE_URL}}"],
+            "port": "8080",
+            "path": ["convert"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Convertir plusieurs devises",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{API_KEY}}",
+              "description": "Token API"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "description": "Type de contenu pour la requête"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"amounts\": [100, 200], \"from_currency\": \"USD\", \"to_currency\": \"EUR\", \"date\": \"latest\"}"
+          },
+          "url": {
+            "raw": "http://{{BASE_URL}}/converts",
+            "protocol": "http",
+            "host": ["{{BASE_URL}}"],
+            "port": "8080",
+            "path": ["converts"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Obtenir les statistiques du cache",
+        "request": {
+          "method": "GET",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{API_KEY}}",
+              "description": "Token API"
+            }
+          ],
+          "url": {
+            "raw": "http://{{BASE_URL}}/cache/stats",
+            "protocol": "http",
+            "host": ["{{BASE_URL}}"],
+            "port": "8080",
+            "path": ["cache", "stats"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Obtenir les clés du cache",
+        "request": {
+          "method": "GET",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{API_KEY}}",
+              "description": "Token API"
+            }
+          ],
+          "url": {
+            "raw": "http://{{BASE_URL}}/cache/keys",
+            "protocol": "http",
+            "host": ["{{BASE_URL}}"],
+            "port": "8080",
+            "path": ["cache", "keys"]
+          }
+        },
+        "response": []
+      }
+    ],
+    "variable": [
+      {
+        "key": "BASE_URL",
+        "value": "localhost",
+        "type": "string"
+      },
+      {
+        "key": "API_KEY",
+        "value": "R3K0C1STH3B35T",
+        "type": "string"
+      }
+    ]
+  }

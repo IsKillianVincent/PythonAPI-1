@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+  api-conversion-devises:
+    image: pythonapi-1-app
+    build:
+      context: .
+    ports:
+      - "8080:8000"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - API_KEY=R3K0C1STH3B35T
+      - API_BASE_URL=https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@
+      - API_FALLBACK_URL=https://currency-api.pages.dev/
+      - API_VERSION=v1
+      - DEBUG=True
+      - CACHE_EXPIRATION_TIME=86400
+      - TEST_VALID_API_KEY=R3K0C1STH3B35T
+      - TEST_NOT_VALID_API_KEY=ERROR
