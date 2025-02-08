@@ -3,12 +3,15 @@
 Ce projet implémente une API de conversion de devises, en utilisant des taux de change extraits de l'API exchange-api. L'API permet de convertir un montant d'une devise à une autre, y compris EUR et toutes les autres monnaies du monde.
 
 ## Fonctionnalités
- -Conversion de devises : Convertir un montant entre différentes devises.
- - Gestion des taux de change : Les taux de change sont mis à jour à partir de l'API externe.
- - Filtrage des données : Utilisation de paramètres de requête pour filtrer les résultats des conversions.
- - Gestion des clés API : Protection des endpoints avec une clé API via un middleware.
- - Gestion des erreurs : Gestion avancée des erreurs pour les connexions Redis, les erreurs API, et les erreurs de validation des données.
- - Variables d'environnement : Configuration flexible via un fichier .env.
+- Conversion de devises : Convertir un montant entre différentes devises.
+- Conversion multiple : Convertir plusieurs montants d'une devise vers une autre en une seule requête.
+- Gestion des taux de change : Les taux de change sont mis à jour à partir de l'API externe.
+- Filtrage des données : Utilisation de paramètres de requête pour filtrer les résultats des conversions.
+- Protection contre les abus : Limitation du nombre de requêtes avec rate limiting (2 requêtes par minute par utilisateur). _(Depreciated)_
+- Gestion des clés API : Protection des endpoints avec une clé API via un middleware.
+- Gestion des erreurs : Gestion avancée des erreurs pour les connexions Redis, les erreurs API, et les erreurs de validation des données.
+- Validation des entrées : Utilisation de schémas Pydantic pour valider les entrées des utilisateurs.
+- Variables d'environnement : Configuration flexible via un fichier .env. 
 
 ## Installation
 ### Prérequis
@@ -42,7 +45,7 @@ pip install -r requirements.txt
 ```
 REDIS_HOST=localhost
 REDIS_PORT=6379
-REDIS_CACHE_EXPIRATION_TIME=60  # en secondes
+REDIS_CACHE_EXPIRATION_TIME=86400  # en secondes
 API_KEY=ton_api_key
 API_BASE_URL=https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@
 API_FALLBACK_URL=https://currency-api.pages.dev/
@@ -64,7 +67,7 @@ Voici les variables que vous pouvez configurer dans votre fichier .env :
 - API_VERSION : Version de l'API à utiliser.
 
 ### Endpoints
-#### 1. GET /convert
+#### 1. POST /convert
 Cet endpoint permet de convertir un montant d'une devise vers une autre.
 
 Paramètres de requête :
@@ -75,7 +78,15 @@ Paramètres de requête :
 
 Exemple de requête :
 ```
-GET /convert?amount=100&from_currency=EUR&to_currency=USD
+POST /convert
+Content-Type: application/json
+
+{
+    "amount": 100,
+    "from_currency": "EUR",
+    "to_currency": "USD",
+    "date": "2025-02-08"
+}
 ```
 
 Exemple de réponse :
@@ -84,13 +95,13 @@ Exemple de réponse :
     "amount": 100,
     "from": "EUR",
     "to": "USD",
-    "date": "latest",
+    "date": "2025-02-08",
     "exchange_rate": 1.12,
     "converted_amount": 112.0
 }
 ```
 
-#### 2. GET /converts
+#### 2. POST /converts
 Cet endpoint permet de convertir une liste de montants d'une devise vers une autre.
 
 Paramètres de requête :
@@ -101,7 +112,15 @@ Paramètres de requête :
 
 Exemple de requête :
 ```
-GET /converts?amounts=100,200&from_currency=EUR&to_currency=USD
+POST /converts
+Content-Type: application/json
+
+{
+    "amounts": [100, 200],
+    "from_currency": "EUR",
+    "to_currency": "USD",
+    "date": "2025-02-08"
+}
 ```
 Exemple de réponse :
 ```
@@ -165,6 +184,21 @@ Exemple d'en-tête :
 ```
 Authorization: Bearer 'API_KEY'
 ```
+### Validation des Entrées avec Pydantic
+### Schémas Pydantic
+Deux schémas Pydantic sont utilisés pour valider les paramètres d'entrée des requêtes POST /convert et POST /converts :
+
+1. ConvertQueryParams : Utilisé pour valider une seule conversion de devise.
+    - amount : Montant à convertir (doit être strictement positif).
+    - from_currency et to_currency : Codes ISO des devises source et cible.
+    - date : Date du taux de conversion (par défaut "latest" ou au format YYYY-MM-DD).
+
+1. ConvertsQueryParams : Utilisé pour valider plusieurs conversions en une seule requête.
+    - amounts : Liste des montants à convertir (doivent être positifs).
+    - from_currency et to_currency : Codes ISO des devises source et cible.
+    - date : Date du taux de conversion (par défaut "latest").
+
+Les schémas sont configurés pour valider les données des requêtes et s'assurer que les devises sont valides, les montants positifs, et la date correcte.
 
 ## Gestion des données avec Redis
 **Pourquoi Redis ?**
