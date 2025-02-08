@@ -21,48 +21,44 @@ async def fetch_all_currencies():
     except Exception as e:
         print(f"Error while fetching all currencies: {str(e)}")
 
-async def fetch_exchange_rate(base_currency: str, target_currency: str, date: str = "latest"):
-    base_cache_key = f"currency_{base_currency}"
-    target_cache_key = f"currency_{target_currency}"
-    
-    base_currency_rate = redis_client.get(base_cache_key)
-    target_currency_rate = redis_client.get(target_cache_key)
-    
-    if not base_currency_rate:
-        raise HTTPException(status_code=404, detail=f"La devise de référence {base_currency} n'existe pas.")
-    
-    if not target_currency_rate:
-        raise HTTPException(status_code=404, detail=f"La devise cible {target_currency} n'existe pas.")
-    
+
+async def fetch_exchange_rate(base_currency: str, target_currency: str, date: str = "latest") -> float:
+    """
+    Récupère le taux de change entre deux devises à une date donnée.
+    """
+
+    base_currency = base_currency.lower()
+    target_currency = target_currency.lower()
+
     cache_key = f"exchange_{base_currency}_{target_currency}_{date}"
-    cached_data = redis_client.get(cache_key)
-    
-    if cached_data:
-        return float(cached_data)
-    
+    cached_rate = redis_client.get(cache_key)
+
+    if cached_rate:
+        return float(cached_rate)
+
     url = f"{API_BASE_URL}{date}/{API_VERSION}/currencies/{base_currency}.json"
     fallback_url = f"{API_FALLBACK_URL}{date}/{API_VERSION}/currencies/{base_currency}.json"
-    
+
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
+
             if response.status_code != 200:
                 response = await client.get(fallback_url)
+
             if response.status_code != 200:
-                raise HTTPException(status_code=response.status_code, detail="La devise de référence n'existe pas")
+                raise HTTPException(status_code=404, detail="Impossible de récupérer le taux de change.")
 
             data = response.json().get(base_currency.lower(), {})
             rate = data.get(target_currency.lower())
+
             if rate is None:
                 raise HTTPException(status_code=422, detail="La devise cible est invalide.")
 
             redis_client.setex(cache_key, get_redis_cache_expiration_time(), rate)
             return rate
-    
-    except httpx.RequestError as e:
-        raise HTTPException(status_code=500, detail=f"Erreur de requête vers l'API: {str(e)}")
-    except httpx.TimeoutException:
-        raise HTTPException(status_code=500, detail="La requête à l'API a expiré.")
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Erreur inconnue lors de la récupération des taux: {str(e)}")
 
+    except httpx.RequestError:
+        raise HTTPException(status_code=500, detail="Erreur lors de la requête vers l'API.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur inconnue : {str(e)}")
