@@ -7,6 +7,7 @@ from app.models.conversion_model import ConvertQueryParams, ConvertsQueryParams
 from app.services.exchange_service import fetch_exchange_rate
 
 router = APIRouter()
+
 limiter = Limiter(key_func=get_remote_address)
 
 @limiter.limit("2/minute")

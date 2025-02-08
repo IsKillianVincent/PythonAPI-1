@@ -22,6 +22,8 @@ from app.exceptions.redis_exceptions import RedisConnectionError
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(
     title="API de conversion de devises",
     version="1.0",
@@ -31,6 +33,8 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json", 
 )
+
+app.state.limiter = limiter
 
 def custom_openapi():
     if app.openapi_schema:
