@@ -3,7 +3,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from typing import List
-from app.models.conversion_model import ConvertQueryParams, ConvertsQueryParams
+from app.schemas.conversion_schema import ConvertQueryParams, ConvertsQueryParams
 from app.services.exchange_service import fetch_exchange_rate
 
 router = APIRouter()
