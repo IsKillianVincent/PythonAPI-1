@@ -20,6 +20,7 @@ Ce projet implémente une API de conversion de devises, en utilisant des taux de
 - Fichier .env pour configurer les variables d'environnement (clés API, hôte Redis, etc.)
 
 ### Étapes d'installation
+#### En local
 1. Clonez ce repository :
 
 ```
@@ -54,6 +55,11 @@ API_VERSION=v1
 7. Lancez l'application :
 ```
 uvicorn app.main:app --reload
+```
+#### Ou
+#### Avec Docker
+```
+docker-compose up --build 
 ```
 
 ### Variables d'environnement
